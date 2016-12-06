@@ -1,0 +1,147 @@
+
+BEGIN TRAN
+
+
+DECLARE @intReutrn BIGINT
+DECLARE @fk_KeyGlCode  bigint = 5
+DECLARE  @ref_EntryBy INT = 2
+DECLARE @fk_PlantGlCode1 varchar(max) =  '18515,56,18540,18573'
+
+INSERT  INTO dbo.KeyAccessRights
+                        (
+						 fk_KeyGlCode,
+                          intEntryDate ,
+                          ref_EntryBy,
+						   fk_GroupGlCode,
+						  fk_PlantGlCode
+                        )
+               select		5,
+							( SELECT  DATEDIFF(s, '1970-01-01 00:00:00',
+                                             GETUTCDATE())
+							),
+							2,pgm.fk_GroupGlCode, t1.id1 FROM 
+							dbo.Fn_SplitStringWithComma_Varchar(@fk_PlantGlCode1) t1
+						INNER JOIN dbo.PlantGroupMapping pgm  ON t1.id1 = pgm.fk_PlantGlCode
+                     
+                SELECT  @intReutrn = SCOPE_IDENTITY() 
+                         
+        SELECT  @intReutrn AS KeyID
+		SELECT * FROM dbo.KeyAccessRights
+ROLLBACK
+
+--------------------------------------------------------------------------------------
+
+SELECT  KAR.fk_KeyGlCode
+       ,STUFF((SELECT ', ' + CAST(pm.varPlantName AS VARCHAR(10)) [text()]
+         FROM dbo.KeyAccessRights KA 
+         INNER JOIN dbo.UserKeyMapping UKM ON UKM.intGlCode = KA.fk_KeyGlCode
+         INNER JOIN dbo.Plant_Mst pm ON pm.intGlCode = KA.fk_PlantGlCode
+         WHERE KA.fk_KeyGlCode = KAR.fk_KeyGlCode
+         FOR XML PATH(''), TYPE)
+        .value('.','NVARCHAR(MAX)'),1,2,' ') List_Output
+FROM dbo.KeyAccessRights AS KAR
+GROUP BY KAR.fk_KeyGlCode
+
+SELECT  KAR.fk_KeyGlCode
+       ,STUFF((SELECT ', ' + CAST(pm.varPlantName AS VARCHAR(10)) [text()]
+         FROM dbo.KeyAccessRights KA 
+         INNER JOIN dbo.UserKeyMapping UKM ON UKM.intGlCode = KA.fk_KeyGlCode
+         INNER JOIN dbo.Plant_Mst pm ON pm.intGlCode = KA.fk_PlantGlCode
+         WHERE KA.fk_KeyGlCode = KAR.fk_KeyGlCode
+         FOR XML PATH(''), TYPE)
+        .value('.','NVARCHAR(MAX)'),1,2,' ') List_Output
+FROM dbo.KeyAccessRights AS KAR
+GROUP BY KAR.fk_KeyGlCode
+
+SELECT * FROM dbo.KeyAccessRights kar
+
+SELECT * FROM dbo.UserKeyMapping ukm
+
+
+
+SELECT				
+			UM.intGlCode,
+			UKM.varKey,
+			UM.varEmail,
+			UKM.intEntryDate,
+			UKM.intRevokeDate,
+			kar.fk_KeyGlCode,
+			STUFF((SELECT DISTINCT ', ' + CAST(pm.varPlantName AS VARCHAR(10)) [text()]
+			FROM dbo.KeyAccessRights KA 
+			INNER JOIN dbo.UserKeyMapping UKM ON UKM.intGlCode = KA.fk_KeyGlCode
+			INNER JOIN dbo.Plant_Mst pm ON pm.intGlCode = KA.fk_PlantGlCode
+			WHERE KA.fk_KeyGlCode = KAR.fk_KeyGlCode
+			FOR XML PATH(''), TYPE)
+			.value('.','NVARCHAR(MAX)'),1,2,' ') varPlantName,
+
+			STUFF((SELECT DISTINCT ', ' + CAST(GM.varDisplayName AS VARCHAR(10)) [text()]
+			FROM dbo.KeyAccessRights KA 
+			INNER JOIN dbo.PlantGroupMapping AS PGM ON PGM.fk_PlantGlCode = ka.fk_PlantGlCode
+			INNER JOIN dbo.Group_Mst AS GM ON GM.intGlCode = PGM.fk_GroupGlCode
+			WHERE KA.fk_KeyGlCode = KAR.fk_KeyGlCode
+			FOR XML PATH(''), TYPE)
+			.value('.','NVARCHAR(MAX)'),1,2,' ') varDisplayName
+
+	FROM    dbo.UserKeyMapping UKM
+	INNER JOIN dbo.UserMaster UM ON UM.intGlCode = UKM.fk_UserGlCode
+	INNER JOIN dbo.KeyAccessRights kar ON kar.fk_KeyGlCode = UKM.intGlCode
+	GROUP BY UM.intGlCode,
+			UKM.varKey,
+			UM.varEmail,
+			UKM.intEntryDate,
+			UKM.intRevokeDate,
+			kar.fk_KeyGlCode
+	ORDER BY UKM.intEntryDate DESC 
+--------------------------------------------------------------------------
+SELECT * FROM dbo.UserKeyMapping ukm
+
+SELECT * FROM dbo.KeyAccessRights kar
+
+
+SELECT* FROM dbo.PlantGroupMapping pgm WHERE pgm.fk_PlantGlCode = 18515
+
+
+	SELECT id1 FROM  dbo.Fn_SplitStringWithComma_Varchar('18515
+,56
+,15775
+,18799')
+
+DECLARE @fk_PlantGlCode varchar(max) = '18515
+,56
+,15775
+,18799'
+select id1 from dbo.Fn_SplitStringWithComma_Varchar(@fk_PlantGlCode)
+
+
+SELECT* FROM dbo.PlantGroupMapping pgm WHERE pgm.fk_PlantGlCode = 18592
+
+DECLARE @fk_PlantGlCode1 varchar(max) =  '18515,18516,18540,18573'
+DECLARE @fk_GroupGlCode varchar(max)
+ DECLARE @temp table(ID  int)
+                            insert into @temp 
+                            select id1 from dbo.Fn_SplitStringWithComma_Varchar(@fk_PlantGlCode1)
+
+ DECLARE @tempGroup table(ID varchar(max),fk_PlantGlCode varchar(max))
+ INSERT INTO @tempGroup
+select pgm.fk_GroupGlCode,pgm.fk_PlantGlCode
+from dbo.PlantGroupMapping pgm inner join @temp t on t.id = pgm.fk_PlantGlCode
+GROUP BY pgm.fk_GroupGlCode,pgm.fk_PlantGlCode
+
+ 
+SELECT @fk_GroupGlCode = COALESCE(@fk_GroupGlCode + ',', '') + ID FROM @tempGroup
+SELECT @fk_GroupGlCode
+--------------------------------------------------------------------------------------------
+
+Multiple rows
+
+SELECT CONCAT(first_name," ",last_name) as "Owner's Name", t1.domainName as "site"
+FROM sites as t1
+LEFT JOIN clients as t2 ON t1.clientid = t2.clientid 
+ORDER BY t2.clientid ;
+
+Comma seperated 
+
+SELECT CONCAT(t2.first_name," ",t2.last_name) as "Owner's Name", GROUP_CONCAT(t1.domainName,SEPARATOR ', ') as "site"
+FROM sites as t1
+LEFT JOIN clients as t2 ON t1.clientid = t2.clientid 
+Where t2.clientid = 1;

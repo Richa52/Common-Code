@@ -1,0 +1,6 @@
+ 
+ // only return file Name without extention
+ var fileName = "~/Content/pdf/Case File/Doc1.pdf";
+           fileName =  System.IO.Path.GetFileNameWithoutExtension (fileName);
+           
+            Console.WriteLine(fileName);
